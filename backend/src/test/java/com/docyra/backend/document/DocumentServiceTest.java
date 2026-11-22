@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -63,5 +64,20 @@ class DocumentServiceTest {
 
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.MATCHED);
         assertThat(document.getPatient()).isEqualTo(dupont);
+    }
+        @Test
+    void listsAllDocumentsExceptDownloadedByDefault() {
+        service.list(null);
+
+        verify(repository).findByStatusInOrderByCreatedAtAsc(
+                EnumSet.of(DocumentStatus.PROCESSING, DocumentStatus.MATCHED,
+                        DocumentStatus.TO_REVIEW, DocumentStatus.VALIDATED));
+    }
+
+    @Test
+    void listsOnlyRequestedStatuses() {
+        service.list(List.of(DocumentStatus.TO_REVIEW));
+
+        verify(repository).findByStatusInOrderByCreatedAtAsc(List.of(DocumentStatus.TO_REVIEW));
     }
 }
