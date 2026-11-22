@@ -3,7 +3,7 @@ package com.docyra.backend.error;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.docyra.backend.document.InvalidImageException;
 import com.docyra.backend.document.MissingPatientException;
@@ -12,6 +12,7 @@ import com.docyra.backend.patient.InvalidCsvException;
 import com.docyra.backend.pdf.PdfGenerationException;
 import com.docyra.backend.scan.PageDetectionException;
 
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCsvException.class)

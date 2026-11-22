@@ -1,7 +1,6 @@
 package com.docyra.backend.patient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -39,9 +38,17 @@ class PatientImportServiceTest {
     }
 
     @Test
-    void rejectsInvalidLine() {
-        assertThatThrownBy(() -> service.importCsv(csv("nom;prenom\nDUPONT\n")))
-                .isInstanceOf(InvalidCsvException.class)
-                .hasMessageContaining("Ligne 2");
+    void skipsInvalidLinesAndReportsThem() {
+        ImportResult result = service.importCsv(csv("nom;prenom\nDUPONT;Marie\nMOREAU;;55\nLEROY\n"));
+
+        assertThat(result.imported()).isEqualTo(1);
+        assertThat(result.invalidLines()).containsExactly(3, 4);
+    }
+
+    @Test
+    void ignoresExtraColumns() {
+        ImportResult result = service.importCsv(csv("nom;prenom;age\nDupont;Marie;34\n"));
+
+        assertThat(result.imported()).isEqualTo(1);
     }
 }

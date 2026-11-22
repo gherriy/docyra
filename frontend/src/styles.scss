@@ -1,0 +1,26 @@
+:root {
+  --bg: #faf8fd;
+  --surface: #ffffff;
+  --ink: #1d1033;
+  --muted: #5b6070;
+  --border: #e6e1ef;
+  --primary: #7b3ad8;
+  --primary-hover: #6a2fc2;
+  --primary-soft: #f2ebfc;
+  --primary-ink: #4c1d95;
+  --error-soft: #fdecec;
+  --error-ink: #b42318;
+  --radius: 16px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+button { font: inherit; cursor: pointer; }
