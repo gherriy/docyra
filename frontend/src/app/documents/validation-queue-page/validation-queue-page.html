@@ -1,0 +1,30 @@
+<header class="header">
+  <h1>À valider</h1>
+  <p class="subtitle">Vérifiez chaque courrier, puis téléchargez les PDF validés.</p>
+</header>
+
+@if (error()) {
+  <p class="banner error" role="alert">Impossible de charger les courriers. Nouvel essai dans quelques secondes.</p>
+}
+
+@if (loaded() && documents().length === 0) {
+  <p class="empty">Aucun courrier à valider pour l'instant.</p>
+}
+
+<ul class="list">
+  @for (document of documents(); track document.id) {
+    <li>
+      <a class="card" [routerLink]="['/a-valider', document.id]">
+        <span class="thumb" aria-hidden="true"><svg lucideFileText [size]="26"></svg></span>
+        <span class="info">
+          <span class="title">{{ title(document) }}</span>
+          <span class="time">Reçu à {{ document.createdAt | date: 'HH:mm' }}</span>
+        </span>
+        <span class="badge" [attr.data-status]="document.status">{{ statusLabel(document.status) }}</span>
+        <svg lucideChevronRight [size]="22" class="chevron" aria-hidden="true"></svg>
+      </a>
+    </li>
+  }
+</ul>
+
+<p class="hint">La liste se met à jour toute seule.</p>
