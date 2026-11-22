@@ -2,11 +2,19 @@ package com.docyra.backend.document;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.List;
+
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.docyra.backend.error.NotFoundException;
 import com.docyra.backend.ocr.OcrService;
+import com.docyra.backend.patient.Patient;
+import com.docyra.backend.patient.PatientMatcher;
+import com.docyra.backend.patient.PatientRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class DocumentService {
@@ -18,15 +26,20 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final ImageStorageService storageService;
     private final OcrService ocrService;
+    private final PatientRepository patientRepository;
+    private final PatientMatcher patientMatcher;
 
     public DocumentService(DocumentRepository documentRepository, ImageStorageService storageService,
-            OcrService ocrService) {
+            OcrService ocrService, PatientRepository patientRepository,
+                           PatientMatcher patientMatcher) {
         this.documentRepository = documentRepository;
         this.storageService = storageService;
         this.ocrService = ocrService;
+        this.patientRepository = patientRepository;
+        this.patientMatcher = patientMatcher;
     }
 
-    public Document upload(MultipartFile file) throws IOException {
+    public UploadResult upload(MultipartFile file) throws IOException {
         String extension = ALLOWED_TYPES.get(file.getContentType());
         if (extension == null) {
             throw new InvalidImageException("Seules les images JPG et PNG sont acceptées");
@@ -34,8 +47,23 @@ public class DocumentService {
 
         String storedFilename = storageService.store(file.getInputStream(), extension);
         Document document = new Document(file.getOriginalFilename(), storedFilename, file.getContentType());
-        document.setExtractedText(ocrService.extractText(storageService.resolve(storedFilename)));
+        String text = ocrService.extractText(storageService.resolve(storedFilename));
 
+        document.setExtractedText(text);
+        List<Patient> candidates = patientMatcher.findInText(patientRepository.findAll(), text);
+        if (candidates.size() == 1) {
+            document.assignPatient(candidates.get(0));
+        }
+        return new UploadResult(documentRepository.save(document), candidates);
+    }
+
+    @Transactional 
+    public Document assignPatient(Long documentId, Long patientId) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new NotFoundException("Document introuvable"));
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new NotFoundException("Patient introuvable"));
+        document.assignPatient(patient);
         return documentRepository.save(document);
     }
 }

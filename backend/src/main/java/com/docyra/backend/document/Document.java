@@ -2,6 +2,8 @@ package com.docyra.backend.document;
 
 import java.time.LocalDateTime;
 
+import com.docyra.backend.patient.Patient;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -27,6 +29,14 @@ public class Document {
      @Column(name = "extracted_text", columnDefinition = "TEXT")
     private String extractedText;
 
+        @ManyToOne
+    @JoinColumn(name = "patient_id")
+    private Patient patient;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DocumentStatus status = DocumentStatus.TO_REVIEW;
+
     protected Document() {
     }
 
@@ -46,5 +56,12 @@ public class Document {
 
     public void setExtractedText(String extractedText) {
         this.extractedText = extractedText;
+    }
+        public Patient getPatient() { return patient; }
+    public DocumentStatus getStatus() { return status; }
+
+    public void assignPatient(Patient patient) {
+        this.patient = patient;
+        this.status = DocumentStatus.MATCHED;
     }
 }
