@@ -6,6 +6,8 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.docyra.backend.ocr.OcrService;
+
 @Service
 public class DocumentService {
 
@@ -15,10 +17,13 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final ImageStorageService storageService;
+    private final OcrService ocrService;
 
-    public DocumentService(DocumentRepository documentRepository, ImageStorageService storageService) {
+    public DocumentService(DocumentRepository documentRepository, ImageStorageService storageService,
+            OcrService ocrService) {
         this.documentRepository = documentRepository;
         this.storageService = storageService;
+        this.ocrService = ocrService;
     }
 
     public Document upload(MultipartFile file) throws IOException {
@@ -29,6 +34,8 @@ public class DocumentService {
 
         String storedFilename = storageService.store(file.getInputStream(), extension);
         Document document = new Document(file.getOriginalFilename(), storedFilename, file.getContentType());
+        document.setExtractedText(ocrService.extractText(storageService.resolve(storedFilename)));
+
         return documentRepository.save(document);
     }
 }

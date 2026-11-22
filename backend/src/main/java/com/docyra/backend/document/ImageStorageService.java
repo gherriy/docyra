@@ -24,4 +24,7 @@ public class ImageStorageService {
         Files.copy(image, storageDir.resolve(filename));
         return filename;
     }
+        public Path resolve(String filename) {
+        return storageDir.resolve(filename);
+    }
 }
