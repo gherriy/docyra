@@ -1,0 +1,51 @@
+<header class="header">
+  <div>
+    <h1>Patients</h1>
+    <p class="subtitle">Docyra cherche ces noms dans chaque courrier scanné.</p>
+  </div>
+  <label class="btn-primary" [class.disabled]="loading()">
+<svg lucideUpload [size]="20" aria-hidden="true"></svg>
+    {{ loading() ? 'Import en cours…' : 'Importer un CSV' }}
+    <input type="file" accept=".csv" (change)="onFileSelected($event)" [disabled]="loading()" hidden />
+  </label>
+</header>
+
+@if (result(); as r) {
+  <p class="banner success" role="status">
+<svg lucideCheck [size]="20" aria-hidden="true"></svg>
+    <span><strong>{{ importedFileName() }} importé :</strong>
+      {{ r.imported }} patients ajoutés, {{ r.skipped }} déjà présents ignorés.</span>
+  </p>
+}
+@if (error()) {
+  <p class="banner error" role="alert">{{ error() }}</p>
+}
+
+<div class="search-row">
+  <label class="search">
+<svg lucideSearch [size]="20" aria-hidden="true"></svg>
+    <input type="search" placeholder="Chercher un patient" aria-label="Chercher un patient" (input)="onSearch($event)" />
+  </label>
+  <span class="count">{{ patients().length }} patients</span>
+</div>
+
+@if (patients().length === 0) {
+  <p class="empty">Aucun patient pour l'instant. Importez un fichier CSV pour commencer.</p>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>Nom</th><th>Prénom</th></tr>
+      </thead>
+      <tbody>
+        @for (patient of filteredPatients(); track patient.id) {
+          <tr><td class="last-name">{{ patient.lastName }}</td><td>{{ patient.firstName }}</td></tr>
+        } @empty {
+          <tr><td colspan="2" class="no-result">Aucun patient ne correspond à « {{ search() }} ».</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<p class="hint">Format attendu : un fichier CSV avec deux colonnes, nom et prénom.</p>
