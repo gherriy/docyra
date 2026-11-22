@@ -1,10 +1,12 @@
 package com.docyra.backend.document;
 
 import java.io.IOException;
+import org.springframework.http.HttpHeaders;
 import java.util.List;
-
-
+import org.springframework.http.MediaType;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,5 +31,15 @@ public class DocumentController {
     @PutMapping("/{id}/patient")
     public DocumentResponse assignPatient(@PathVariable Long id, @RequestBody AssignPatientRequest request) {
         return DocumentResponse.from(documentService.assignPatient(id, request.patientId()), List.of());
+    }
+
+        @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
+        DocumentPdf pdf = documentService.getPdf(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(pdf.fileName()).build().toString())
+                .body(pdf.content());
     }
 }

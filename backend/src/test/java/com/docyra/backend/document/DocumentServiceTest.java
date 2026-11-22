@@ -8,12 +8,15 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.docyra.backend.ocr.OcrService;
 import com.docyra.backend.patient.Patient;
 import com.docyra.backend.patient.PatientMatcher;
 import com.docyra.backend.patient.PatientRepository;
+import com.docyra.backend.pdf.PdfService;
+import com.docyra.backend.scan.PageDetector;
 
 class DocumentServiceTest {
 
@@ -21,7 +24,9 @@ class DocumentServiceTest {
     private final ImageStorageService storage = mock(ImageStorageService.class);
     private final OcrService ocr = mock(OcrService.class);
     private final PatientRepository patients = mock(PatientRepository.class);
-    private final DocumentService service = new DocumentService(repository, storage, ocr,patients, new PatientMatcher());
+    private final PdfService pdfService = mock(PdfService.class);
+    private final PageDetector pageDetector = mock(PageDetector.class);
+    private final DocumentService service = new DocumentService(repository, storage, ocr,patients, new PatientMatcher(), pdfService, pageDetector);
 
     @Test
     void storesJpgImage() throws Exception {
