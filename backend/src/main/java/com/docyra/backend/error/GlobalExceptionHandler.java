@@ -5,6 +5,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.docyra.backend.document.InvalidImageException;
+import com.docyra.backend.ocr.OcrException;
 import com.docyra.backend.patient.InvalidCsvException;
 
 public class GlobalExceptionHandler {
@@ -17,6 +18,11 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(InvalidImageException.class)
     public ProblemDetail handleInvalidImage(InvalidImageException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+        @ExceptionHandler(OcrException.class)
+    public ProblemDetail handleOcr(OcrException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
     }
 
 }

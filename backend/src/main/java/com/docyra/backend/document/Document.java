@@ -24,6 +24,9 @@ public class Document {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+     @Column(name = "extracted_text", columnDefinition = "TEXT")
+    private String extractedText;
+
     protected Document() {
     }
 
@@ -38,4 +41,10 @@ public class Document {
     public String getStoredFilename() { return storedFilename; }
     public String getContentType() { return contentType; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+        public String getExtractedText() { return extractedText; }
+
+    public void setExtractedText(String extractedText) {
+        this.extractedText = extractedText;
+    }
 }
