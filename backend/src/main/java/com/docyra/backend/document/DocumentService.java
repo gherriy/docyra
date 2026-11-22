@@ -13,6 +13,8 @@ import com.docyra.backend.ocr.OcrService;
 import com.docyra.backend.patient.Patient;
 import com.docyra.backend.patient.PatientMatcher;
 import com.docyra.backend.patient.PatientRepository;
+import com.docyra.backend.pdf.PdfService;
+import com.docyra.backend.scan.PageDetector;
 
 import jakarta.transaction.Transactional;
 
@@ -28,15 +30,19 @@ public class DocumentService {
     private final OcrService ocrService;
     private final PatientRepository patientRepository;
     private final PatientMatcher patientMatcher;
+    private final PdfService pdfService;
+    private final PageDetector pageDetector;
 
     public DocumentService(DocumentRepository documentRepository, ImageStorageService storageService,
             OcrService ocrService, PatientRepository patientRepository,
-                           PatientMatcher patientMatcher) {
+                           PatientMatcher patientMatcher, PdfService pdfService, PageDetector pageDetector) {
         this.documentRepository = documentRepository;
         this.storageService = storageService;
         this.ocrService = ocrService;
         this.patientRepository = patientRepository;
         this.patientMatcher = patientMatcher;
+        this.pdfService = pdfService;
+        this.pageDetector = pageDetector;
     }
 
     public UploadResult upload(MultipartFile file) throws IOException {
@@ -65,5 +71,16 @@ public class DocumentService {
                 .orElseThrow(() -> new NotFoundException("Patient introuvable"));
         document.assignPatient(patient);
         return documentRepository.save(document);
+    }
+        public DocumentPdf getPdf(Long documentId) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new NotFoundException("Document introuvable"));
+        if (document.getPatient() == null) {
+            throw new MissingPatientException();
+        }
+
+        byte[] page = pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
+        byte[] pdf = pdfService.imageToPdf(page);
+        return new DocumentPdf(DocumentFileName.of(document.getPatient()), pdf);
     }
 }
