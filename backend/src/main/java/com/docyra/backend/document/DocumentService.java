@@ -3,7 +3,8 @@ package com.docyra.backend.document;
 import java.io.IOException;
 import java.util.Map;
 import java.util.List;
-
+import java.util.Collection;
+import java.util.EnumSet;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,5 +83,11 @@ public class DocumentService {
         byte[] page = pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
         byte[] pdf = pdfService.imageToPdf(page);
         return new DocumentPdf(DocumentFileName.of(document.getPatient()), pdf);
+    }
+        public List<Document> list(Collection<DocumentStatus> statuses) {
+        Collection<DocumentStatus> filter = (statuses == null || statuses.isEmpty())
+                ? EnumSet.complementOf(EnumSet.of(DocumentStatus.DOWNLOADED))
+                : statuses;
+        return documentRepository.findByStatusInOrderByCreatedAtAsc(filter);
     }
 }

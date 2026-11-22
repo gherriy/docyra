@@ -33,7 +33,7 @@ public class DocumentController {
         return DocumentResponse.from(documentService.assignPatient(id, request.patientId()), List.of());
     }
 
-        @GetMapping("/{id}/pdf")
+    @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
         DocumentPdf pdf = documentService.getPdf(id);
         return ResponseEntity.ok()
@@ -41,5 +41,12 @@ public class DocumentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment().filename(pdf.fileName()).build().toString())
                 .body(pdf.content());
+    }
+
+    @GetMapping
+    public List<DocumentSummary> list(@RequestParam(required = false) List<DocumentStatus> status) {
+        return documentService.list(status).stream()
+                .map(DocumentSummary::from)
+                .toList();
     }
 }
