@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class PatientImportService {
     public ImportResult importCsv(InputStream csv) {
         int imported = 0;
         int skipped = 0;
+        List<Integer> invalidLines = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv, StandardCharsets.UTF_8))) {
             String line = reader.readLine(); // ligne d'en-tête : nom;prenom
@@ -34,8 +37,9 @@ public class PatientImportService {
                 }
 
                 String[] columns = line.split(";");
-                if (columns.length != 2 || columns[0].isBlank() || columns[1].isBlank()) {
-                    throw new InvalidCsvException("Ligne " + lineNumber + " invalide : " + line);
+if (columns.length < 2 || columns[0].isBlank() || columns[1].isBlank()) {                    
+                    invalidLines.add(lineNumber);
+                    continue;
                 }
 
                 String lastName = columns[0].trim().toUpperCase();
@@ -52,6 +56,6 @@ public class PatientImportService {
             throw new InvalidCsvException("Impossible de lire le fichier");
         }
 
-        return new ImportResult(imported, skipped);
+        return new ImportResult(imported, skipped, invalidLines);
     }
 }

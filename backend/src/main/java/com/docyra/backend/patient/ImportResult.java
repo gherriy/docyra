@@ -1,5 +1,7 @@
 package com.docyra.backend.patient;
 
-public record ImportResult(int imported, int skipped)  {
+import java.util.List;
+
+public record ImportResult(int imported, int skipped, List<Integer> invalidLines)  {
     
 }

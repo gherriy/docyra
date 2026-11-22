@@ -17,6 +17,12 @@
       {{ r.imported }} patients ajoutés, {{ r.skipped }} déjà présents ignorés.</span>
   </p>
 }
+@if (result()?.invalidLines?.length) {
+  <p class="banner warning" role="status">
+    {{ result()!.invalidLines.length }} ligne(s) ignorée(s), nom ou prénom manquant :
+    ligne(s) {{ result()!.invalidLines.join(', ') }}.
+  </p>
+}
 @if (error()) {
   <p class="banner error" role="alert">{{ error() }}</p>
 }

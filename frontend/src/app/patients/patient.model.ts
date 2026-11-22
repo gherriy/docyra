@@ -1,10 +1,12 @@
 export interface Patient {
-  id: number;
-  lastName: string;
-  firstName: string;
+    id: number;
+    lastName: string;
+    firstName: string;
 }
 
 export interface ImportResult {
-  imported: number;
-  skipped: number;
+    imported: number;
+    skipped: number;
+    invalidLines: number[];
+
 }
