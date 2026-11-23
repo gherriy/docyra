@@ -17,4 +17,11 @@ export class DocumentService {
   assignPatient(id: number, patientId: number) {
     return this.http.put<DocumentDetail>(`/api/documents/${id}/patient`, { patientId });
   }
+    validate(id: number) {
+    return this.http.put<DocumentDetail>(`/api/documents/${id}/validate`, {});
+  }
+
+  downloadZip() {
+    return this.http.get('/api/documents/zip', { responseType: 'blob' });
+  }
 }

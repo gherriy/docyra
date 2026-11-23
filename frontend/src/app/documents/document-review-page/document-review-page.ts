@@ -6,6 +6,7 @@ import { PatientService } from '../../patients/patient.service';
 import { DocumentDetail, DocumentSummary } from '../document.model';
 import { DocumentService } from '../document.service';
 import { fileNameFor } from '../file-name';
+import { of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-document-review-page',
@@ -80,17 +81,19 @@ export class DocumentReviewPage implements OnInit {
       return;
     }
     this.saving.set(true);
-    if (patientId === document.patient?.id) {
-      this.goToNext();
-      return;
-    }
-    this.documentService.assignPatient(document.id, patientId).subscribe({
-      next: () => this.goToNext(),
-      error: (err) => {
-        this.error.set(err.error?.detail ?? "Le patient n'a pas pu être enregistré");
-        this.saving.set(false);
-      },
-    });
+    const assign$ = patientId === document.patient?.id
+      ? of(document)
+      : this.documentService.assignPatient(document.id, patientId);
+
+    assign$
+      .pipe(switchMap(() => this.documentService.validate(document.id)))
+      .subscribe({
+        next: () => this.goToNext(),
+        error: (err) => {
+          this.error.set(err.error?.detail ?? "Le courrier n'a pas pu être validé");
+          this.saving.set(false);
+        },
+      });
   }
 
   private load(id: number) {
