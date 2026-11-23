@@ -8,12 +8,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -66,5 +68,39 @@ class SecurityIntegrationTest {
 
         mvc.perform(get("/api/patients").header("Authorization", "Bearer " + matcher.group(1)))
                 .andExpect(status().isOk());
+    }
+        private String scanToken() throws Exception {
+        String login = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(GOOD_LOGIN))
+                .andReturn().getResponse().getContentAsString();
+        String jwt = extractToken(login);
+        String scan = mvc.perform(post("/api/scan-sessions").header("Authorization", "Bearer " + jwt))
+                .andReturn().getResponse().getContentAsString();
+        return extractToken(scan);
+    }
+
+    private String extractToken(String json) {
+        Matcher matcher = Pattern.compile("\"token\":\"([^\"]+)\"").matcher(json);
+        matcher.find();
+        return matcher.group(1);
+    }
+
+    @Test
+    void scanTokenCanSendDocuments() throws Exception {
+        var notAnImage = new MockMultipartFile("file", "notes.txt", "text/plain", new byte[] {1});
+
+        mvc.perform(multipart("/api/documents").file(notAnImage).header("X-Scan-Token", scanToken()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void scanTokenCannotReadPatients() throws Exception {
+        mvc.perform(get("/api/patients").header("X-Scan-Token", scanToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void invalidScanTokenIsRejected() throws Exception {
+        mvc.perform(get("/api/patients").header("X-Scan-Token", "faux"))
+                .andExpect(status().isUnauthorized());
     }
 }
