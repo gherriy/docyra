@@ -1,82 +1,86 @@
 @if (document(); as doc) {
-  <header class="header">
+<header class="header">
     <h1>{{ found() ? 'Courrier prêt' : 'Quel est le patient ?' }}</h1>
     <p class="subtitle">
-      Courrier {{ position().current }} sur {{ position().total }} ·
-      {{ found() ? 'vérifiez le patient, puis validez.' : 'choisissez le patient de ce courrier.' }}
+        Courrier {{ position().current }} sur {{ position().total }} ·
+        {{ found() ? 'vérifiez le patient, puis validez.' : 'choisissez le patient de ce courrier.' }}
     </p>
-  </header>
+</header>
 
-  <div class="layout">
+<div class="layout">
     <figure class="preview">
-      <img [src]="imageUrl()" alt="Page redressée du courrier" />
-      <figcaption>Page redressée</figcaption>
+        @if (imageUrl()) {
+
+        <img [src]="imageUrl()" alt="Page redressée du courrier" />
+        }
+        <figcaption>Page redressée</figcaption>
     </figure>
 
     <section class="side">
-      @if (found()) {
+        @if (found()) {
         <div class="card">
-          <div class="card-head">
-            <span class="label">Patient</span>
-            <span class="pill"><svg lucideCheck [size]="16" aria-hidden="true"></svg> Trouvé dans la liste</span>
-          </div>
-          <p class="patient-name">{{ doc.patient?.lastName }} {{ doc.patient?.firstName }}</p>
-          <button type="button" class="btn-secondary" (click)="changing.set(true)">Changer de patient</button>
+            <div class="card-head">
+                <span class="label">Patient</span>
+                <span class="pill"><svg lucideCheck [size]="16" aria-hidden="true"></svg> Trouvé dans la liste</span>
+            </div>
+            <p class="patient-name">{{ doc.patient?.lastName }} {{ doc.patient?.firstName }}</p>
+            <button type="button" class="btn-secondary" (click)="changing.set(true)">Changer de patient</button>
         </div>
-      } @else {
+        } @else {
         <p class="banner warning">
-          <svg lucideTriangleAlert [size]="20" aria-hidden="true"></svg>
-          @if (doc.candidates.length > 1) {
+            <svg lucideTriangleAlert [size]="20" aria-hidden="true"></svg>
+            @if (doc.candidates.length > 1) {
             <span><strong>À vérifier :</strong> {{ doc.candidates.length }} patients possibles</span>
-          } @else if (doc.candidates.length === 1) {
+            } @else if (doc.candidates.length === 1) {
             <span><strong>À vérifier :</strong> 1 patient possible</span>
-          } @else {
+            } @else {
             <span><strong>À vérifier :</strong> aucun patient de la liste trouvé dans ce courrier</span>
-          }
+            }
         </p>
 
         <fieldset class="choices">
-          <legend class="label">Choisissez le patient</legend>
-          @for (patient of doc.candidates; track patient.id) {
+            <legend class="label">Choisissez le patient</legend>
+            @for (patient of doc.candidates; track patient.id) {
             <label class="choice" [class.selected]="selectedId() === patient.id">
-              <input type="radio" name="patient" [checked]="selectedId() === patient.id" (change)="select(patient)" />
-              {{ patient.lastName }} {{ patient.firstName }}
+                <input type="radio" name="patient" [checked]="selectedId() === patient.id" (change)="select(patient)" />
+                {{ patient.lastName }} {{ patient.firstName }}
             </label>
-          }
+            }
 
-          <label class="label" for="search">Ou cherchez un autre patient</label>
-          <div class="search">
-            <svg lucideSearch [size]="20" aria-hidden="true"></svg>
-            <input id="search" type="search" placeholder="Nom ou prénom" (input)="onSearch($event)" />
-          </div>
-          @for (patient of searchResults(); track patient.id) {
+            <label class="label" for="search">Ou cherchez un autre patient</label>
+            <div class="search">
+                <svg lucideSearch [size]="20" aria-hidden="true"></svg>
+                <input id="search" type="search" placeholder="Nom ou prénom" (input)="onSearch($event)" />
+            </div>
+            @for (patient of searchResults(); track patient.id) {
             <label class="choice" [class.selected]="selectedId() === patient.id">
-              <input type="radio" name="patient" [checked]="selectedId() === patient.id" (change)="select(patient)" />
-              {{ patient.lastName }} {{ patient.firstName }}
+                <input type="radio" name="patient" [checked]="selectedId() === patient.id" (change)="select(patient)" />
+                {{ patient.lastName }} {{ patient.firstName }}
             </label>
-          }
+            }
         </fieldset>
-      }
+        }
 
-      <div class="card">
-        <span class="label">Nom du fichier</span>
-        <p class="file-name">{{ fileName() ?? 'Choisissez un patient' }}</p>
-      </div>
+        <div class="card">
+            <span class="label">Nom du fichier</span>
+            <p class="file-name">{{ fileName() ?? 'Choisissez un patient' }}</p>
+        </div>
 
-      @if (error()) {
+        @if (error()) {
         <p class="banner error" role="alert">{{ error() }}</p>
-      }
+        }
 
-      <div class="actions">
-        <button type="button" class="btn-primary" (click)="validateAndNext()" [disabled]="!selectedId() || saving()">
-          <svg lucideCheck [size]="20" aria-hidden="true"></svg>
-          Valider et passer au suivant
-        </button>
-        <a routerLink="/a-valider" class="link">Retour à la file</a>
-      </div>
+        <div class="actions">
+            <button type="button" class="btn-primary" (click)="validateAndNext()"
+                [disabled]="!selectedId() || saving()">
+                <svg lucideCheck [size]="20" aria-hidden="true"></svg>
+                Valider et passer au suivant
+            </button>
+            <a routerLink="/a-valider" class="link">Retour à la file</a>
+        </div>
     </section>
-  </div>
+</div>
 } @else if (error()) {
-  <p class="banner error" role="alert">{{ error() }}</p>
-  <a routerLink="/a-valider" class="link">Retour à la file</a>
+<p class="banner error" role="alert">{{ error() }}</p>
+<a routerLink="/a-valider" class="link">Retour à la file</a>
 }

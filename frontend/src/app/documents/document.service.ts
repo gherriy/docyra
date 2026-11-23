@@ -24,4 +24,7 @@ export class DocumentService {
   downloadZip() {
     return this.http.get('/api/documents/zip', { responseType: 'blob' });
   }
+    image(id: number) {
+    return this.http.get(`/api/documents/${id}/image`, { responseType: 'blob' });
+  }
 }
