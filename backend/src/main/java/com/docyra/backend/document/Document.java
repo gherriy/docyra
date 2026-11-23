@@ -64,4 +64,14 @@ public class Document {
         this.patient = patient;
         this.status = DocumentStatus.MATCHED;
     }
+        public void validate() {
+        if (patient == null) {
+            throw new MissingPatientException();
+        }
+        this.status = DocumentStatus.VALIDATED;
+    }
+
+    public void markDownloaded() {
+        this.status = DocumentStatus.DOWNLOADED;
+    }
 }

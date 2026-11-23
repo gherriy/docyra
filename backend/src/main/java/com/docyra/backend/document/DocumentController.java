@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/documents")
 public class DocumentController {
@@ -58,5 +58,19 @@ public class DocumentController {
     @GetMapping(value = "/{id}/image", produces = MediaType.IMAGE_JPEG_VALUE)
     public byte[] pageImage(@PathVariable Long id) {
         return documentService.getPageImage(id);
+    }
+        @PutMapping("/{id}/validate")
+    public DocumentResponse validate(@PathVariable Long id) {
+        return DocumentResponse.from(documentService.validate(id), List.of());
+    }
+
+    @GetMapping("/zip")
+    public ResponseEntity<byte[]> downloadZip() throws IOException {
+        String filename = "courriers-docyra-" + LocalDate.now() + ".zip";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(filename).build().toString())
+                .body(documentService.buildValidatedZip());
     }
 }

@@ -1,7 +1,10 @@
 package com.docyra.backend.document;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.util.List;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -104,5 +107,34 @@ public class DocumentService {
     private Document findDocument(Long documentId) {
         return documentRepository.findById(documentId)
                 .orElseThrow(() -> new NotFoundException("Document introuvable"));
+    }
+        @Transactional
+    public Document validate(Long documentId) {
+        Document document = findDocument(documentId);
+        document.validate();
+        return documentRepository.save(document);
+    }
+
+    @Transactional
+    public byte[] buildValidatedZip() throws IOException {
+        List<Document> documents = documentRepository.findByStatusInOrderByCreatedAtAsc(
+                List.of(DocumentStatus.VALIDATED));
+        if (documents.isEmpty()) {
+            throw new NotFoundException("Aucun courrier validé à télécharger");
+        }
+
+        UniqueFileNames names = new UniqueFileNames();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            for (Document document : documents) {
+                byte[] page = pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
+                zip.putNextEntry(new ZipEntry(names.next(DocumentFileName.of(document.getPatient()))));
+                zip.write(pdfService.imageToPdf(page));
+                zip.closeEntry();
+                document.markDownloaded();
+            }
+        }
+        documentRepository.saveAll(documents);
+        return out.toByteArray();
     }
 }

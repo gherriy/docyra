@@ -1,6 +1,17 @@
 <header class="header">
+  <div>
+
   <h1>À valider</h1>
   <p class="subtitle">Vérifiez chaque courrier, puis téléchargez les PDF validés.</p>
+  </div>
+  <button type="button" class="btn-primary" (click)="downloadZip()" [disabled]="validatedCount() === 0 || downloading()">
+    <svg lucideDownload [size]="20" aria-hidden="true"></svg>
+    @if (downloading()) {
+      Préparation du ZIP…
+    } @else {
+      Télécharger les {{ validatedCount() }} PDF validés (ZIP)
+    }
+  </button>
 </header>
 
 @if (error()) {
@@ -27,4 +38,5 @@
   }
 </ul>
 
-<p class="hint">La liste se met à jour toute seule.</p>
+<p class="hint">La liste se met à jour toute seule. Les courriers téléchargés dans le ZIP sortent de la file.
+  Deux PDF du même patient sont numérotés : DUPONT_Marie.pdf, DUPONT_Marie_2.pdf.</p>
