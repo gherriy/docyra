@@ -49,4 +49,14 @@ public class DocumentController {
                 .map(DocumentSummary::from)
                 .toList();
     }
+        @GetMapping("/{id}")
+    public DocumentResponse detail(@PathVariable Long id) {
+        UploadResult result = documentService.getDetail(id);
+        return DocumentResponse.from(result.document(), result.candidates());
+    }
+
+    @GetMapping(value = "/{id}/image", produces = MediaType.IMAGE_JPEG_VALUE)
+    public byte[] pageImage(@PathVariable Long id) {
+        return documentService.getPageImage(id);
+    }
 }
