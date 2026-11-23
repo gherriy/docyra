@@ -23,6 +23,9 @@ services:
       DOCYRA_OCR_DATAPATH: /usr/share/tesseract-ocr/5/tessdata
       DOCYRA_OCR_LIB_PATH: ""
       DOCYRA_STORAGE_DIR: /app/uploads
+      DOCYRA_ACCOUNT_EMAIL: ${DOCYRA_ACCOUNT_EMAIL}
+      DOCYRA_ACCOUNT_PASSWORD: ${DOCYRA_ACCOUNT_PASSWORD}
+      DOCYRA_JWT_SECRET: ${DOCYRA_JWT_SECRET}
     ports:
       - "8080:8080"
     volumes:

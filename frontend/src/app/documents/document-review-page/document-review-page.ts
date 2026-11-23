@@ -29,7 +29,7 @@ export class DocumentReviewPage implements OnInit {
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
 
-  readonly imageUrl = computed(() => `/api/documents/${this.document()?.id}/image`);
+  readonly imageUrl = signal<string | null>(null);
 
   readonly found = computed(() => this.document()?.status === 'MATCHED' && !this.changing());
 
@@ -97,6 +97,12 @@ export class DocumentReviewPage implements OnInit {
   }
 
   private load(id: number) {
+        const previous = this.imageUrl();
+    if (previous) {
+      URL.revokeObjectURL(previous);
+    }
+    this.imageUrl.set(null);
+    this.documentService.image(id).subscribe((blob) => this.imageUrl.set(URL.createObjectURL(blob)));
     this.changing.set(false);
     this.search.set('');
     this.error.set(null);

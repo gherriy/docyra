@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideInbox, LucideUsers } from '@lucide/angular';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-shell',
@@ -9,4 +10,7 @@ import { LucideInbox, LucideUsers } from '@lucide/angular';
   styleUrl: './shell.scss',
 
 })
-export class Shell {}
+export class Shell {
+    readonly auth = inject(AuthService);
+
+}

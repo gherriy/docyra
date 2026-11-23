@@ -1,0 +1,30 @@
+.page { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+
+.card {
+  width: 100%; max-width: 460px; padding: 48px 40px;
+  border: 1px solid var(--border); border-radius: 24px; background: var(--surface);
+  box-shadow: 0 16px 40px rgba(29, 16, 51, 0.06);
+  display: flex; flex-direction: column;
+}
+
+.logo { width: 200px; align-self: center; margin-bottom: 24px; }
+h1 { margin: 0; text-align: center; font-size: 30px; font-weight: 700; }
+.subtitle { margin: 8px 0 28px; text-align: center; color: var(--muted); }
+
+label { font-weight: 600; margin-bottom: 8px; }
+input {
+  height: 52px; padding: 0 16px; margin-bottom: 20px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; font-size: 17px;
+  &:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+}
+.field-error { margin: -12px 0 16px; color: var(--error-ink); font-size: 14px; }
+.error { margin: 0 0 16px; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--error-soft); color: var(--error-ink); }
+
+button {
+  height: 56px; border: 0; border-radius: var(--radius-sm);
+  background: var(--primary); color: #fff; font-size: 18px; font-weight: 600;
+  transition: background-color 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  &:hover { background: var(--primary-hover); }
+  &:active { transform: scale(0.98); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
