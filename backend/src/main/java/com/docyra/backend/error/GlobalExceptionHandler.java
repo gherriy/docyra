@@ -5,6 +5,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.docyra.backend.auth.InvalidCredentialsException;
 import com.docyra.backend.document.InvalidImageException;
 import com.docyra.backend.document.MissingPatientException;
 import com.docyra.backend.ocr.OcrException;
@@ -40,6 +41,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({PdfGenerationException.class, PageDetectionException.class})
     public ProblemDetail handleImageProcessing(RuntimeException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+    }
+        @ExceptionHandler(InvalidCredentialsException.class)
+    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
 }
