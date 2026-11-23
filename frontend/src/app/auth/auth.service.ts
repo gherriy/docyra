@@ -35,6 +35,9 @@ export class AuthService {
   }
 
   logout() {
+    if (this.isLoggedIn()) {
+      this.http.post('/api/auth/logout', {}).subscribe({ error: () => {} });
+    }
     localStorage.removeItem(STORAGE_KEY);
     this.session.set(null);
     this.router.navigate(['/connexion']);
