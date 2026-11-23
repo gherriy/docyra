@@ -35,6 +35,8 @@ public class AuthService {
         Instant expiresAt = now.plus(TOKEN_VALIDITY);
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.getEmail())
+                                .claim("scope", "secretary")
+
                 .issuedAt(now)
                 .expiresAt(expiresAt)
                 .build();
