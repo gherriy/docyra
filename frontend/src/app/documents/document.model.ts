@@ -9,3 +9,12 @@ export interface DocumentSummary {
   fileName: string | null;
   createdAt: string;
 }
+export interface DocumentDetail {
+  id: number;
+  originalFilename: string;
+  extractedText: string;
+  status: DocumentStatus;
+  patient: Patient | null;
+  fileName: string | null;
+  candidates: Patient[];
+}
