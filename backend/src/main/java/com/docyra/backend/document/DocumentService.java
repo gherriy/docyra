@@ -90,4 +90,19 @@ public class DocumentService {
                 : statuses;
         return documentRepository.findByStatusInOrderByCreatedAtAsc(filter);
     }
+        public UploadResult getDetail(Long documentId) {
+        Document document = findDocument(documentId);
+        List<Patient> candidates = patientMatcher.findInText(patientRepository.findAll(), document.getExtractedText());
+        return new UploadResult(document, candidates);
+    }
+
+    public byte[] getPageImage(Long documentId) {
+        Document document = findDocument(documentId);
+        return pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
+    }
+
+    private Document findDocument(Long documentId) {
+        return documentRepository.findById(documentId)
+                .orElseThrow(() -> new NotFoundException("Document introuvable"));
+    }
 }

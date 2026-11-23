@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -79,5 +80,18 @@ class DocumentServiceTest {
         service.list(List.of(DocumentStatus.TO_REVIEW));
 
         verify(repository).findByStatusInOrderByCreatedAtAsc(List.of(DocumentStatus.TO_REVIEW));
+    }
+        @Test
+    void detailRecomputesCandidatesFromText() {
+        Document document = new Document("courrier.jpg", "abc.jpg", "image/jpeg");
+        document.setExtractedText("Patient : Hugo LEFEBVRE, frère de Noé LEFEBVRE");
+        Patient hugo = new Patient("LEFEBVRE", "Hugo");
+        Patient noe = new Patient("LEFEBVRE", "Noé");
+        when(repository.findById(1L)).thenReturn(Optional.of(document));
+        when(patients.findAll()).thenReturn(List.of(hugo, noe, new Patient("MARTIN", "Jean")));
+
+        UploadResult result = service.getDetail(1L);
+
+        assertThat(result.candidates()).containsExactly(hugo, noe);
     }
 }
