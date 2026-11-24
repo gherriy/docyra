@@ -6,10 +6,12 @@ import { DocumentReviewPage } from './documents/document-review-page/document-re
 import { LoginPage } from './auth/login-page/login-page';
 import { authGuard } from './auth/auth.guard';
 import { PhonePage } from './phone/phone-page/phone-page';
+import { ScanPage } from './scan/scan-page/scan-page';
 
 
 export const routes: Routes = [
   { path: 'connexion', component: LoginPage, title: 'Docyra - Connexion' },
+    { path: 'scan', component: ScanPage, title: 'Docyra - Scan' },
   {
     path: '',
     component: Shell,

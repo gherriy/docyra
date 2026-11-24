@@ -10,26 +10,28 @@ export class DocumentService {
     return this.http.get<DocumentSummary[]>('/api/documents');
   }
 
-    get(id: number) {
+  get(id: number) {
     return this.http.get<DocumentDetail>(`/api/documents/${id}`);
   }
 
   assignPatient(id: number, patientId: number) {
     return this.http.put<DocumentDetail>(`/api/documents/${id}/patient`, { patientId });
   }
-    validate(id: number) {
+  validate(id: number) {
     return this.http.put<DocumentDetail>(`/api/documents/${id}/validate`, {});
   }
 
   downloadZip() {
     return this.http.get('/api/documents/zip', { responseType: 'blob' });
   }
-    image(id: number) {
+  image(id: number) {
     return this.http.get(`/api/documents/${id}/image`, { responseType: 'blob' });
   }
-    upload(file: File) {
+  upload(file: File, scanToken?: string) {
     const form = new FormData();
     form.append('file', file);
-    return this.http.post('/api/documents', form);
+    const headers = scanToken ? { 'X-Scan-Token': scanToken } : undefined;
+
+    return this.http.post('/api/documents', form, { headers });
   }
 }
