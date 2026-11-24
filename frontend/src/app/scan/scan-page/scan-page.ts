@@ -1,14 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LucideCamera, LucideSend } from '@lucide/angular';
+import { LucideCamera, LucideSend, LucideX } from '@lucide/angular';
 import { DocumentService } from '../../documents/document.service';
 
 const MAX_PAGES = 20;
 
 @Component({
   selector: 'app-scan-page',
-  imports: [LucideCamera, LucideSend],
+  imports: [LucideCamera, LucideSend, LucideX],
   templateUrl: './scan-page.html',
   styleUrl: './scan-page.scss',
 })
@@ -36,13 +36,10 @@ export class ScanPage implements OnDestroy {
     this.previews.update((urls) => [...urls, URL.createObjectURL(file)]);
   }
 
-  removeLastPage() {
-    const last = this.previews().at(-1);
-    if (last) {
-      URL.revokeObjectURL(last);
-    }
-    this.pages.update((pages) => pages.slice(0, -1));
-    this.previews.update((urls) => urls.slice(0, -1));
+  removePage(index: number) {
+    URL.revokeObjectURL(this.previews()[index]);
+    this.pages.update((pages) => pages.filter((_, i) => i !== index));
+    this.previews.update((urls) => urls.filter((_, i) => i !== index));
   }
 
   ngOnDestroy() {

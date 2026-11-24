@@ -18,16 +18,22 @@
     @if (pages().length > 0) {
       <ol class="thumbs" aria-label="Pages prises">
         @for (url of previews(); track url; let i = $index) {
-          <li><img [src]="url" [alt]="'Page ' + (i + 1)" /><span>{{ i + 1 }}</span></li>
+          <li>
+            <img [src]="url" [alt]="'Page ' + (i + 1)" />
+            <span class="number">{{ i + 1 }}</span>
+            <button type="button" class="remove" (click)="removePage(i)" [disabled]="sending()"
+              [attr.aria-label]="'Retirer la page ' + (i + 1)">
+              <svg lucideX [size]="16" aria-hidden="true"></svg>
+            </button>
+          </li>
         }
       </ol>
       <p class="pages" role="status">
         {{ pages().length }} {{ pages().length > 1 ? 'pages dans ce courrier' : 'page dans ce courrier' }}
-        <button type="button" class="link" (click)="removeLastPage()" [disabled]="sending()">Retirer la dernière</button>
       </p>
       <button type="button" class="btn-send" (click)="send()" [disabled]="sending()">
         <svg lucideSend [size]="22" aria-hidden="true"></svg>
-        {{ sending() ? 'Envoi en cours…' : 'Envoyer ce courrier' }}
+        {{ sending() ? 'Envoi en cours…' : 'Envoyer le courrier (' + pages().length + (pages().length > 1 ? ' pages)' : ' page)') }}
       </button>
     }
 
