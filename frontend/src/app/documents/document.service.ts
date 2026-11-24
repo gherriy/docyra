@@ -27,4 +27,9 @@ export class DocumentService {
     image(id: number) {
     return this.http.get(`/api/documents/${id}/image`, { responseType: 'blob' });
   }
+    upload(file: File) {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post('/api/documents', form);
+  }
 }

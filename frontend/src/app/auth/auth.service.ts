@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
+import { SCAN_SESSION_KEY } from '../phone/scan-session.service';
 
 interface Session {
   token: string;
@@ -39,6 +40,7 @@ export class AuthService {
       this.http.post('/api/auth/logout', {}).subscribe({ error: () => {} });
     }
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SCAN_SESSION_KEY);
     this.session.set(null);
     this.router.navigate(['/connexion']);
   }
