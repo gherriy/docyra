@@ -1,0 +1,26 @@
+<main class="scan">
+  <img src="logo.png" alt="Docyra" class="logo" />
+
+  @if (!token || expired()) {
+    <h1>Ce lien n'est plus valable</h1>
+    <p class="text">Sur l'ordinateur, ouvrez la page Téléphone et scannez le nouveau QR code.</p>
+  } @else {
+    <h1>Photographiez vos courriers</h1>
+    <p class="text">Une photo par courrier. Elles arrivent dans « À valider » sur l'ordinateur.</p>
+
+    <label class="btn-primary" [class.disabled]="sending()">
+      <svg lucideCamera [size]="24" aria-hidden="true"></svg>
+      {{ sending() ? 'Envoi en cours…' : 'Prendre une photo' }}
+      <input type="file" accept="image/jpeg,image/png" capture="environment" (change)="onPhoto($event)" [disabled]="sending()" hidden />
+    </label>
+
+    @if (sentCount() > 0) {
+      <p class="count" role="status">
+        {{ sentCount() }} {{ sentCount() > 1 ? 'courriers envoyés' : 'courrier envoyé' }}
+      </p>
+    }
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  }
+</main>
