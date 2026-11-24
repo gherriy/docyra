@@ -5,6 +5,7 @@ import { ValidationQueuePage } from './documents/validation-queue-page/validatio
 import { DocumentReviewPage } from './documents/document-review-page/document-review-page';
 import { LoginPage } from './auth/login-page/login-page';
 import { authGuard } from './auth/auth.guard';
+import { PhonePage } from './phone/phone-page/phone-page';
 
 
 export const routes: Routes = [
@@ -19,6 +20,7 @@ export const routes: Routes = [
       { path: 'patients', component: PatientImportPage, title: 'Docyra - Patients' },
       { path: 'a-valider', component: ValidationQueuePage, title: 'Docyra - À valider' },
       { path: 'a-valider/:id', component: DocumentReviewPage, title: 'Docyra - Vérifier un courrier' },
+      { path: 'telephone', component: PhonePage, title: 'Docyra - Téléphone' },
 
     ],
   },

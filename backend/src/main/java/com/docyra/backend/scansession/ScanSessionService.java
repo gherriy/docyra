@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +22,13 @@ public class ScanSessionService {
     private final ScanSessionRepository repository;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
+    private final String scanBaseUrl;
 
-    public ScanSessionService(ScanSessionRepository repository, Clock clock) {
+
+    public ScanSessionService(ScanSessionRepository repository, Clock clock, @Value("${docyra.scan.base-url}") String scanBaseUrl) {
         this.repository = repository;
         this.clock = clock;
+        this.scanBaseUrl = scanBaseUrl;
     }
 
     @Transactional
@@ -37,7 +41,7 @@ public class ScanSessionService {
         Instant expiresAt = clock.instant().plus(VALIDITY);
 
         repository.save(new ScanSession(hash(token), email, expiresAt));
-        return new ScanSessionResponse(token, expiresAt);
+        return new ScanSessionResponse(token, scanBaseUrl + "/scan?token=" +token, expiresAt);
     }
 
     @Transactional

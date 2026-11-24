@@ -1,0 +1,52 @@
+<header class="header">
+  <h1>Scanner avec votre téléphone</h1>
+  <p class="subtitle">Les photos prises sur le téléphone arrivent directement ici, dans « À valider ».</p>
+</header>
+
+<div class="layout">
+  <section class="qr-card">
+    <h2>Scannez ce code</h2>
+    <div class="qr">
+      @if (qrCode()) {
+        <img [src]="qrCode()" alt="QR code pour ouvrir la page de scan sur le téléphone" />
+      }
+    </div>
+    @if (session(); as s) {
+      <p class="validity">Valable jusqu'à {{ s.expiresAt | date: 'HH:mm' }}, ou jusqu'à votre déconnexion</p>
+    }
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+    <button type="button" class="btn-secondary" (click)="generate()" [disabled]="loading()">Générer un nouveau code</button>
+  </section>
+
+  <section class="help">
+    <ol class="steps">
+      <li>
+        <strong>Ouvrez l'appareil photo du téléphone</strong>
+        <span>Le téléphone doit être sur le même Wi-Fi que cet ordinateur.</span>
+      </li>
+      <li>
+        <strong>Visez le QR code</strong>
+        <span>La page de scan s'ouvre, sans mot de passe.</span>
+      </li>
+      <li>
+        <strong>Prenez les courriers en photo, un par un</strong>
+        <span>Chaque photo arrive dans « À valider » sur cet ordinateur.</span>
+      </li>
+    </ol>
+
+    <div class="fallback">
+      <p>
+        Pas de téléphone sous la main ?
+        <label class="link">
+          Choisir une image sur l'ordinateur
+          <input type="file" accept="image/jpeg,image/png" (change)="onFileSelected($event)" hidden />
+        </label>
+      </p>
+      @if (uploadMessage()) {
+        <p class="upload-message" role="status">{{ uploadMessage() }} <a routerLink="/a-valider" class="link">Voir la file</a></p>
+      }
+    </div>
+  </section>
+</div>
