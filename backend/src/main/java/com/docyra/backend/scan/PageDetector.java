@@ -30,9 +30,11 @@ public class PageDetector {
 
         MatOfPoint2f corners = findPageCorners(image);
         Mat page = corners == null ? image : straighten(image, corners);
+                Mat scanned = applyScanEffect(page);
+
 
         MatOfByte buffer = new MatOfByte();
-        Imgcodecs.imencode(".jpg", page, buffer);
+        Imgcodecs.imencode(".jpg", scanned, buffer);
         return buffer.toArray();
     }
 
@@ -97,6 +99,22 @@ public class PageDetector {
         Mat matrix = Imgproc.getPerspectiveTransform(source, target);
         Mat result = new Mat();
         Imgproc.warpPerspective(image, result, matrix, new Size(width, height));
+        return result;
+    }
+    Mat applyScanEffect(Mat page) {
+        Mat gray = new Mat();
+        Imgproc.cvtColor(page, gray, Imgproc.COLOR_BGR2GRAY);
+
+        Mat background = new Mat();
+        Imgproc.dilate(gray, background, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(15, 15)));
+        Imgproc.medianBlur(background, background, 21);
+
+        Mat flat = new Mat();
+        Core.divide(gray, background, flat, 255);
+
+        Mat result = new Mat();
+        Core.normalize(flat, result, 0, 255, Core.NORM_MINMAX);
+        result.convertTo(result, -1, 1.2, -30);
         return result;
     }
 

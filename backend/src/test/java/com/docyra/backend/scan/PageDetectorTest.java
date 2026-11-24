@@ -39,4 +39,14 @@ class PageDetectorTest {
         assertThat(ordered).containsExactly(
                 new Point(120, 90), new Point(500, 130), new Point(470, 700), new Point(90, 660));
     }
+        @Test
+    void scanEffectTurnsYellowPaperWhiteAndKeepsTextDark() {
+        Mat page = new Mat(400, 300, CvType.CV_8UC3, new Scalar(110, 170, 190));
+        Imgproc.line(page, new Point(50, 200), new Point(250, 200), new Scalar(20, 20, 20), 4);
+
+        Mat result = new PageDetector().applyScanEffect(page);
+
+        assertThat(result.get(50, 50)[0]).isGreaterThan(240);
+        assertThat(result.get(200, 150)[0]).isLessThan(80);
+    }
 }
