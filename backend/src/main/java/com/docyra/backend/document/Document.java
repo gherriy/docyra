@@ -1,7 +1,10 @@
 package com.docyra.backend.document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.docyra.backend.error.NotFoundException;
 import com.docyra.backend.patient.Patient;
 
 import jakarta.persistence.*;
@@ -17,12 +20,6 @@ public class Document {
     @Column(name = "original_filename", nullable = false)
     private String originalFilename;
 
-    @Column(name = "stored_filename", nullable = false)
-    private String storedFilename;
-
-    @Column(name = "content_type", nullable = false)
-    private String contentType;
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -37,19 +34,33 @@ public class Document {
     @Column(nullable = false)
     private DocumentStatus status = DocumentStatus.TO_REVIEW;
 
+    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("pageNumber ASC")
+    private List<DocumentPage> pages = new ArrayList<>();
+
     protected Document() {
     }
 
-    public Document(String originalFilename, String storedFilename, String contentType) {
+    public Document(String originalFilename) {
         this.originalFilename = originalFilename;
-        this.storedFilename = storedFilename;
-        this.contentType = contentType;
     }
+
+    public void addPage(String storedFilename, String contentType) {
+        pages.add(new DocumentPage(this, pages.size() + 1, storedFilename, contentType));
+    }
+
+    public DocumentPage getPage(int pageNumber) {
+        if (pageNumber < 1 || pageNumber > pages.size()) {
+            throw new NotFoundException("Page introuvable");
+        }
+        return pages.get(pageNumber - 1);
+    }
+
+    public List<DocumentPage> getPages() { return List.copyOf(pages); }
+    public int getPageCount() { return pages.size(); }
 
     public Long getId() { return id; }
     public String getOriginalFilename() { return originalFilename; }
-    public String getStoredFilename() { return storedFilename; }
-    public String getContentType() { return contentType; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
         public String getExtractedText() { return extractedText; }
