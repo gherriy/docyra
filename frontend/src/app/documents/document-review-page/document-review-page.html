@@ -38,6 +38,7 @@
             }
         </p>
 
+
         <fieldset class="choices">
             <legend class="label">Choisissez le patient</legend>
             @for (patient of doc.candidates; track patient.id) {
@@ -57,6 +58,14 @@
                 <input type="radio" name="patient" [checked]="selectedId() === patient.id" (change)="select(patient)" />
                 {{ patient.lastName }} {{ patient.firstName }}
             </label>
+            }
+                        @if (addedName()) {
+            <p class="added" role="status"><strong>{{ addedName() }}</strong> a été ajouté à la liste et choisi pour ce courrier.</p>
+            }
+            @if (adding()) {
+            <app-add-patient-form (created)="onPatientAdded($event)" (cancelled)="adding.set(false)" />
+            } @else {
+            <button type="button" class="add-link" (click)="adding.set(true)">Le patient n'est pas dans la liste ? Ajouter ce patient</button>
             }
         </fieldset>
         }

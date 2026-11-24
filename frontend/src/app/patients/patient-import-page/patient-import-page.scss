@@ -166,3 +166,5 @@ tr:last-child td {
     color: var(--muted);
     font-size: 15px;
 }
+.add-link { background: none; border: 0; padding: 0; margin-bottom: 16px; color: var(--primary); font: inherit; font-weight: 600; cursor: pointer; &:hover { text-decoration: underline; } }
+app-add-patient-form { display: block; margin-bottom: 16px; }

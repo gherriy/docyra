@@ -9,6 +9,14 @@
     <input type="file" accept=".csv" (change)="onFileSelected($event)" [disabled]="loading()" hidden />
   </label>
 </header>
+@if (adding()) {
+  <app-add-patient-form (created)="onPatientAdded($event)" (cancelled)="adding.set(false)" />
+} @else {
+  <button type="button" class="link add-link" (click)="adding.set(true); addedName.set(null)">Ajouter un patient à la main</button>
+}
+@if (addedName()) {
+  <p class="banner success" role="status">{{ addedName() }} a été ajouté à la liste.</p>
+}
 
 @if (result(); as r) {
   <p class="banner success" role="status">

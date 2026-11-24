@@ -15,4 +15,7 @@ export class PatientService {
     form.append('file', file);
     return this.http.post<ImportResult>('/api/patients/import', form);
   }
+    create(lastName: string, firstName: string) {
+    return this.http.post<Patient>('/api/patients', { lastName, firstName });
+  }
 }
