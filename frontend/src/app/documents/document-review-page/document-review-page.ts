@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { LucideCheck, LucideSearch, LucideTriangleAlert } from '@lucide/angular';
+import { LucideCheck, LucideChevronLeft, LucideChevronRight, LucideSearch, LucideTriangleAlert } from '@lucide/angular';
 import { Patient } from '../../patients/patient.model';
 import { PatientService } from '../../patients/patient.service';
 import { DocumentDetail, DocumentSummary } from '../document.model';
@@ -11,7 +11,7 @@ import { AddPatientForm } from '../../patients/add-patient-form/add-patient-form
 
 @Component({
   selector: 'app-document-review-page',
-  imports: [RouterLink, LucideCheck, LucideSearch, LucideTriangleAlert, AddPatientForm],
+  imports: [RouterLink, LucideCheck, LucideChevronLeft, LucideChevronRight, LucideSearch, LucideTriangleAlert, AddPatientForm],
   templateUrl: './document-review-page.html',
   styleUrl: './document-review-page.scss',
 })
@@ -31,6 +31,8 @@ export class DocumentReviewPage implements OnInit {
   readonly error = signal<string | null>(null);
 
   readonly imageUrl = signal<string | null>(null);
+  readonly pageNumber = signal(1);
+  readonly pageCount = computed(() => this.document()?.pageCount ?? 1);
 
   readonly found = computed(() => this.document()?.status === 'MATCHED' && !this.changing());
 
@@ -99,13 +101,26 @@ export class DocumentReviewPage implements OnInit {
       });
   }
 
-  private load(id: number) {
-        const previous = this.imageUrl();
+  showPage(pageNumber: number) {
+    const document = this.document();
+    if (!document || pageNumber < 1 || pageNumber > document.pageCount) {
+      return;
+    }
+    this.loadPage(document.id, pageNumber);
+  }
+
+  private loadPage(id: number, pageNumber: number) {
+    const previous = this.imageUrl();
     if (previous) {
       URL.revokeObjectURL(previous);
     }
     this.imageUrl.set(null);
-    this.documentService.image(id).subscribe((blob) => this.imageUrl.set(URL.createObjectURL(blob)));
+    this.pageNumber.set(pageNumber);
+    this.documentService.pageImage(id, pageNumber).subscribe((blob) => this.imageUrl.set(URL.createObjectURL(blob)));
+  }
+
+  private load(id: number) {
+    this.loadPage(id, 1);
     this.changing.set(false);
     this.adding.set(false);
     this.addedName.set(null);

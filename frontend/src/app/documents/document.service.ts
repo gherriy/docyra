@@ -24,12 +24,13 @@ export class DocumentService {
   downloadZip() {
     return this.http.get('/api/documents/zip', { responseType: 'blob' });
   }
-  image(id: number) {
-    return this.http.get(`/api/documents/${id}/image`, { responseType: 'blob' });
+  pageImage(id: number, pageNumber: number) {
+    return this.http.get(`/api/documents/${id}/pages/${pageNumber}/image`, { responseType: 'blob' });
   }
-  upload(file: File, scanToken?: string) {
+
+  upload(pages: File[], scanToken?: string) {
     const form = new FormData();
-    form.append('file', file);
+    pages.forEach((page) => form.append('files', page));
     const headers = scanToken ? { 'X-Scan-Token': scanToken } : undefined;
 
     return this.http.post('/api/documents', form, { headers });

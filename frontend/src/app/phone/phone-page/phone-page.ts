@@ -44,14 +44,18 @@ export class PhonePage implements OnInit {
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const pages = Array.from(input.files ?? []);
     input.value = '';
-    if (!file) {
+    if (pages.length === 0) {
       return;
     }
     this.uploadMessage.set('Envoi en cours…');
-    this.documentService.upload(file).subscribe({
-      next: () => this.uploadMessage.set(`${file.name} a été ajouté à « À valider ».`),
+    this.documentService.upload(pages).subscribe({
+      next: () => this.uploadMessage.set(
+        pages.length > 1
+          ? `Un courrier de ${pages.length} pages a été ajouté à « À valider ».`
+          : `${pages[0].name} a été ajouté à « À valider ».`,
+      ),
       error: (err) => this.uploadMessage.set(err.error?.detail ?? "L'image n'a pas pu être envoyée."),
     });
   }

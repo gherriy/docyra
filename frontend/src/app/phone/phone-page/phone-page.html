@@ -31,8 +31,8 @@
         <span>La page de scan s'ouvre, sans mot de passe.</span>
       </li>
       <li>
-        <strong>Prenez les courriers en photo, un par un</strong>
-        <span>Chaque photo arrive dans « À valider » sur cet ordinateur.</span>
+        <strong>Photographiez chaque page, puis envoyez le courrier</strong>
+        <span>Un courrier de plusieurs pages arrive en un seul document dans « À valider ».</span>
       </li>
     </ol>
 
@@ -40,8 +40,8 @@
       <p>
         Pas de téléphone sous la main ?
         <label class="link">
-          Choisir une image sur l'ordinateur
-          <input type="file" accept="image/jpeg,image/png" (change)="onFileSelected($event)" hidden />
+          Choisir les pages d'un courrier sur l'ordinateur
+          <input type="file" accept="image/jpeg,image/png" multiple (change)="onFileSelected($event)" hidden />
         </label>
       </p>
       @if (uploadMessage()) {
