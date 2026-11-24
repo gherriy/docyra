@@ -6,13 +6,30 @@
     <p class="text">Sur l'ordinateur, ouvrez la page Téléphone et scannez le nouveau QR code.</p>
   } @else {
     <h1>Photographiez vos courriers</h1>
-    <p class="text">Une photo par courrier. Elles arrivent dans « À valider » sur l'ordinateur.</p>
+    <p class="text">Prenez chaque page du courrier en photo, puis envoyez-le. Il arrive dans « À valider » sur l'ordinateur.</p>
 
-    <label class="btn-primary" [class.disabled]="sending()">
+    <label class="btn-primary" [class.disabled]="sending() || pages().length >= maxPages">
       <svg lucideCamera [size]="24" aria-hidden="true"></svg>
-      {{ sending() ? 'Envoi en cours…' : 'Prendre une photo' }}
-      <input type="file" accept="image/jpeg,image/png" capture="environment" (change)="onPhoto($event)" [disabled]="sending()" hidden />
+      {{ pages().length === 0 ? 'Photographier la page 1' : 'Ajouter la page ' + (pages().length + 1) }}
+      <input type="file" accept="image/jpeg,image/png" capture="environment" (change)="onPhoto($event)"
+        [disabled]="sending() || pages().length >= maxPages" hidden />
     </label>
+
+    @if (pages().length > 0) {
+      <ol class="thumbs" aria-label="Pages prises">
+        @for (url of previews(); track url; let i = $index) {
+          <li><img [src]="url" [alt]="'Page ' + (i + 1)" /><span>{{ i + 1 }}</span></li>
+        }
+      </ol>
+      <p class="pages" role="status">
+        {{ pages().length }} {{ pages().length > 1 ? 'pages dans ce courrier' : 'page dans ce courrier' }}
+        <button type="button" class="link" (click)="removeLastPage()" [disabled]="sending()">Retirer la dernière</button>
+      </p>
+      <button type="button" class="btn-send" (click)="send()" [disabled]="sending()">
+        <svg lucideSend [size]="22" aria-hidden="true"></svg>
+        {{ sending() ? 'Envoi en cours…' : 'Envoyer ce courrier' }}
+      </button>
+    }
 
     @if (sentCount() > 0) {
       <p class="count" role="status">

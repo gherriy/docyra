@@ -22,8 +22,8 @@ public class DocumentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentResponse upload(@RequestParam("file") MultipartFile file) throws IOException {
-        var result = documentService.upload(file);
+    public DocumentResponse upload(@RequestParam("files") List<MultipartFile> files) throws IOException {
+        var result = documentService.upload(files);
 
         return DocumentResponse.from(result.document(), result.candidates());
     }
@@ -55,9 +55,9 @@ public class DocumentController {
         return DocumentResponse.from(result.document(), result.candidates());
     }
 
-    @GetMapping(value = "/{id}/image", produces = MediaType.IMAGE_JPEG_VALUE)
-    public byte[] pageImage(@PathVariable Long id) {
-        return documentService.getPageImage(id);
+    @GetMapping(value = "/{id}/pages/{pageNumber}/image", produces = MediaType.IMAGE_JPEG_VALUE)
+    public byte[] pageImage(@PathVariable Long id, @PathVariable int pageNumber) {
+        return documentService.getPageImage(id, pageNumber);
     }
         @PutMapping("/{id}/validate")
     public DocumentResponse validate(@PathVariable Long id) {

@@ -3,6 +3,7 @@ package com.docyra.backend.document;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import java.util.List;
@@ -24,6 +25,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class DocumentService {
+
+    private static final int MAX_PAGES = 20;
 
     private static final Map<String, String> ALLOWED_TYPES = Map.of(
             "image/jpeg", "jpg",
@@ -49,18 +52,28 @@ public class DocumentService {
         this.pageDetector = pageDetector;
     }
 
-    public UploadResult upload(MultipartFile file) throws IOException {
-        String extension = ALLOWED_TYPES.get(file.getContentType());
-        if (extension == null) {
-            throw new InvalidImageException("Seules les images JPG et PNG sont acceptées");
+    public UploadResult upload(List<MultipartFile> files) throws IOException {
+        if (files == null || files.isEmpty()) {
+            throw new InvalidImageException("Ajoutez au moins une page");
+        }
+        if (files.size() > MAX_PAGES) {
+            throw new InvalidImageException("Un courrier ne peut pas dépasser " + MAX_PAGES + " pages");
+        }
+        for (MultipartFile file : files) {
+            if (!ALLOWED_TYPES.containsKey(file.getContentType())) {
+                throw new InvalidImageException("Seules les images JPG et PNG sont acceptées");
+            }
         }
 
-        String storedFilename = storageService.store(file.getInputStream(), extension);
-        Document document = new Document(file.getOriginalFilename(), storedFilename, file.getContentType());
-        String text = ocrService.extractText(storageService.resolve(storedFilename));
-
-        document.setExtractedText(text);
-        List<Patient> candidates = patientMatcher.findInText(patientRepository.findAll(), text);
+        Document document = new Document(files.get(0).getOriginalFilename());
+        StringJoiner text = new StringJoiner("\n\n");
+        for (MultipartFile file : files) {
+            String storedFilename = storageService.store(file.getInputStream(), ALLOWED_TYPES.get(file.getContentType()));
+            document.addPage(storedFilename, file.getContentType());
+            text.add(ocrService.extractText(storageService.resolve(storedFilename)));
+        }
+        document.setExtractedText(text.toString());
+        List<Patient> candidates = patientMatcher.findInText(patientRepository.findAll(), document.getExtractedText());
         if (candidates.size() == 1) {
             document.assignPatient(candidates.get(0));
         }
@@ -83,8 +96,7 @@ public class DocumentService {
             throw new MissingPatientException();
         }
 
-        byte[] page = pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
-        byte[] pdf = pdfService.imageToPdf(page);
+        byte[] pdf = pdfService.imagesToPdf(straightenedPages(document));
         return new DocumentPdf(DocumentFileName.of(document.getPatient()), pdf);
     }
         public List<Document> list(Collection<DocumentStatus> statuses) {
@@ -99,9 +111,17 @@ public class DocumentService {
         return new UploadResult(document, candidates);
     }
 
-    public byte[] getPageImage(Long documentId) {
+    public byte[] getPageImage(Long documentId, int pageNumber) {
         Document document = findDocument(documentId);
-        return pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
+        return straighten(document.getPage(pageNumber));
+    }
+
+    private List<byte[]> straightenedPages(Document document) {
+        return document.getPages().stream().map(this::straighten).toList();
+    }
+
+    private byte[] straighten(DocumentPage page) {
+        return pageDetector.extractPage(storageService.resolve(page.getStoredFilename()));
     }
 
     private Document findDocument(Long documentId) {
@@ -127,9 +147,8 @@ public class DocumentService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (ZipOutputStream zip = new ZipOutputStream(out)) {
             for (Document document : documents) {
-                byte[] page = pageDetector.extractPage(storageService.resolve(document.getStoredFilename()));
                 zip.putNextEntry(new ZipEntry(names.next(DocumentFileName.of(document.getPatient()))));
-                zip.write(pdfService.imageToPdf(page));
+                zip.write(pdfService.imagesToPdf(straightenedPages(document)));
                 zip.closeEntry();
                 document.markDownloaded();
             }

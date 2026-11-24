@@ -10,10 +10,23 @@
 <div class="layout">
     <figure class="preview">
         @if (imageUrl()) {
-
-        <img [src]="imageUrl()" alt="Page redressée du courrier" />
+        <img [src]="imageUrl()" [alt]="'Page ' + pageNumber() + ' redressée du courrier'" />
         }
+        @if (pageCount() > 1) {
+        <nav class="pager" aria-label="Pages du courrier">
+            <button type="button" class="pager-btn" (click)="showPage(pageNumber() - 1)" [disabled]="pageNumber() === 1"
+                aria-label="Page précédente">
+                <svg lucideChevronLeft [size]="20" aria-hidden="true"></svg>
+            </button>
+            <span>Page {{ pageNumber() }} sur {{ pageCount() }}</span>
+            <button type="button" class="pager-btn" (click)="showPage(pageNumber() + 1)"
+                [disabled]="pageNumber() === pageCount()" aria-label="Page suivante">
+                <svg lucideChevronRight [size]="20" aria-hidden="true"></svg>
+            </button>
+        </nav>
+        } @else {
         <figcaption>Page redressée</figcaption>
+        }
     </figure>
 
     <section class="side">

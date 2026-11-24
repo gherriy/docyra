@@ -6,7 +6,9 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +17,7 @@ import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.docyra.backend.ocr.OcrService;
 import com.docyra.backend.patient.Patient;
@@ -38,9 +41,10 @@ class DocumentServiceTest {
         when(storage.store(any(), eq("jpg"))).thenReturn("abc.jpg");
         when(repository.save(any(Document.class))).thenAnswer(call -> call.getArgument(0));
         when(ocr.extractText(any())).thenReturn("Madame DUPONT Marie");
-        Document document = service.upload(file).document();
+        Document document = service.upload(List.of(file)).document();
 
-        assertThat(document.getStoredFilename()).isEqualTo("abc.jpg");
+        assertThat(document.getPageCount()).isEqualTo(1);
+        assertThat(document.getPage(1).getStoredFilename()).isEqualTo("abc.jpg");
         assertThat(document.getOriginalFilename()).isEqualTo("courrier.jpg");
         assertThat(document.getExtractedText()).isEqualTo("Madame DUPONT Marie");
     }
@@ -49,12 +53,45 @@ class DocumentServiceTest {
     void rejectsNonImageFile() {
         var file = new MockMultipartFile("file", "notes.txt", "text/plain", new byte[] { 1 });
 
-        assertThatThrownBy(() -> service.upload(file))
+        assertThatThrownBy(() -> service.upload(List.of(file)))
                 .isInstanceOf(InvalidImageException.class);
         verifyNoInteractions(storage, repository);
     }
 
-        @Test
+    @Test
+    void storesEveryPageInOrderAndJoinsTheirText() throws Exception {
+        var page1 = new MockMultipartFile("files", "page1.jpg", "image/jpeg", new byte[] {1});
+        var page2 = new MockMultipartFile("files", "page2.png", "image/png", new byte[] {2});
+        when(storage.store(any(), eq("jpg"))).thenReturn("p1.jpg");
+        when(storage.store(any(), eq("png"))).thenReturn("p2.png");
+        when(storage.resolve(any())).thenAnswer(call -> Path.of(call.<String>getArgument(0)));
+        when(ocr.extractText(Path.of("p1.jpg"))).thenReturn("Madame DUPONT");
+        when(ocr.extractText(Path.of("p2.png"))).thenReturn("Suite du courrier");
+        when(repository.save(any(Document.class))).thenAnswer(call -> call.getArgument(0));
+
+        Document document = service.upload(List.of(page1, page2)).document();
+
+        assertThat(document.getPages()).extracting(DocumentPage::getStoredFilename).containsExactly("p1.jpg", "p2.png");
+        assertThat(document.getPages()).extracting(DocumentPage::getPageNumber).containsExactly(1, 2);
+        assertThat(document.getExtractedText()).isEqualTo("Madame DUPONT\n\nSuite du courrier");
+    }
+
+    @Test
+    void rejectsEmptyUpload() {
+        assertThatThrownBy(() -> service.upload(List.of())).isInstanceOf(InvalidImageException.class);
+        verifyNoInteractions(storage, repository);
+    }
+
+    @Test
+    void rejectsTooManyPages() {
+        var page = new MockMultipartFile("files", "p.jpg", "image/jpeg", new byte[] {1});
+        List<MultipartFile> pages = Collections.nCopies(21, page);
+
+        assertThatThrownBy(() -> service.upload(pages)).isInstanceOf(InvalidImageException.class);
+        verifyNoInteractions(storage, repository);
+    }
+
+    @Test
     void assignsPatientWhenOnlyOneIsFound() throws Exception {
         var file = new MockMultipartFile("file", "courrier.jpg", "image/jpeg", new byte[] {1});
         Patient dupont = new Patient("DUPONT", "Marie");
@@ -63,7 +100,7 @@ class DocumentServiceTest {
         when(patients.findAll()).thenReturn(List.of(dupont, new Patient("MARTIN", "Jean")));
         when(repository.save(any(Document.class))).thenAnswer(call -> call.getArgument(0));
 
-        Document document = service.upload(file).document();
+        Document document = service.upload(List.of(file)).document();
 
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.MATCHED);
         assertThat(document.getPatient()).isEqualTo(dupont);
@@ -85,7 +122,7 @@ class DocumentServiceTest {
     }
         @Test
     void detailRecomputesCandidatesFromText() {
-        Document document = new Document("courrier.jpg", "abc.jpg", "image/jpeg");
+        Document document = new Document("courrier.jpg");
         document.setExtractedText("Patient : Hugo LEFEBVRE, frère de Noé LEFEBVRE");
         Patient hugo = new Patient("LEFEBVRE", "Hugo");
         Patient noe = new Patient("LEFEBVRE", "Noé");
@@ -98,7 +135,7 @@ class DocumentServiceTest {
     }
         @Test
     void cannotValidateWithoutPatient() {
-        Document document = new Document("courrier.jpg", "abc.jpg", "image/jpeg");
+        Document document = new Document("courrier.jpg");
         when(repository.findById(1L)).thenReturn(Optional.of(document));
 
         assertThatThrownBy(() -> service.validate(1L)).isInstanceOf(MissingPatientException.class);
@@ -107,8 +144,11 @@ class DocumentServiceTest {
     @Test
     void zipContainsNumberedPdfsAndMarksDocumentsDownloaded() throws Exception {
         Patient marie = new Patient("DUPONT", "Marie");
-        Document first = new Document("a.jpg", "a.jpg", "image/jpeg");
-        Document second = new Document("b.jpg", "b.jpg", "image/jpeg");
+        Document first = new Document("a.jpg");
+        first.addPage("a1.jpg", "image/jpeg");
+        first.addPage("a2.jpg", "image/jpeg");
+        Document second = new Document("b.jpg");
+        second.addPage("b1.jpg", "image/jpeg");
         first.assignPatient(marie);
         second.assignPatient(marie);
         first.validate();
@@ -116,7 +156,7 @@ class DocumentServiceTest {
         when(repository.findByStatusInOrderByCreatedAtAsc(List.of(DocumentStatus.VALIDATED)))
                 .thenReturn(List.of(first, second));
         when(pageDetector.extractPage(any())).thenReturn(new byte[] {1});
-        when(pdf.imageToPdf(any())).thenReturn(new byte[] {2});
+        when(pdf.imagesToPdf(any())).thenReturn(new byte[] {2});
 
         byte[] zipBytes = service.buildValidatedZip();
 
@@ -130,5 +170,7 @@ class DocumentServiceTest {
         assertThat(names).containsExactly("DUPONT_Marie.pdf", "DUPONT_Marie_2.pdf");
         assertThat(first.getStatus()).isEqualTo(DocumentStatus.DOWNLOADED);
         assertThat(second.getStatus()).isEqualTo(DocumentStatus.DOWNLOADED);
+        verify(pdf).imagesToPdf(argThat(pages -> pages.size() == 2));
+        verify(pdf).imagesToPdf(argThat(pages -> pages.size() == 1));
     }
 }

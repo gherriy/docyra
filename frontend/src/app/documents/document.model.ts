@@ -16,5 +16,6 @@ export interface DocumentDetail {
   status: DocumentStatus;
   patient: Patient | null;
   fileName: string | null;
+  pageCount: number;
   candidates: Patient[];
 }
