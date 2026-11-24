@@ -7,10 +7,11 @@ import { DocumentDetail, DocumentSummary } from '../document.model';
 import { DocumentService } from '../document.service';
 import { fileNameFor } from '../file-name';
 import { of, switchMap } from 'rxjs';
+import { AddPatientForm } from '../../patients/add-patient-form/add-patient-form';
 
 @Component({
   selector: 'app-document-review-page',
-  imports: [RouterLink, LucideCheck, LucideSearch, LucideTriangleAlert],
+  imports: [RouterLink, LucideCheck, LucideSearch, LucideTriangleAlert, AddPatientForm],
   templateUrl: './document-review-page.html',
   styleUrl: './document-review-page.scss',
 })
@@ -60,6 +61,8 @@ export class DocumentReviewPage implements OnInit {
     const index = this.queue().findIndex((d) => d.id === this.document()?.id);
     return { current: index + 1, total: this.queue().length };
   });
+  readonly adding = signal(false);
+  readonly addedName = signal<string | null>(null);
 
   ngOnInit() {
     this.patientService.list().subscribe((patients) => this.patients.set(patients));
@@ -104,6 +107,8 @@ export class DocumentReviewPage implements OnInit {
     this.imageUrl.set(null);
     this.documentService.image(id).subscribe((blob) => this.imageUrl.set(URL.createObjectURL(blob)));
     this.changing.set(false);
+    this.adding.set(false);
+    this.addedName.set(null);
     this.search.set('');
     this.error.set(null);
     this.saving.set(false);
@@ -123,5 +128,11 @@ export class DocumentReviewPage implements OnInit {
     const index = queue.findIndex((d) => d.id === this.document()?.id);
     const next = queue.slice(index + 1).find((d) => d.status !== 'VALIDATED');
     this.router.navigate(next ? ['/a-valider', next.id] : ['/a-valider']);
+  }
+  onPatientAdded(patient: Patient) {
+    this.patients.update((list) => [...list, patient]);
+    this.selectedId.set(patient.id);
+    this.adding.set(false);
+    this.addedName.set(`${patient.lastName} ${patient.firstName}`);
   }
 }

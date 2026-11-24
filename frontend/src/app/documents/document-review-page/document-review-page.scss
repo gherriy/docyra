@@ -64,6 +64,8 @@ h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
 }
 
 .link { color: var(--primary); font-weight: 600; text-decoration: none; &:hover { text-decoration: underline; } }
+.add-link { background: none; border: 0; padding: 0; margin-top: 8px; text-align: left; color: var(--primary); font: inherit; font-weight: 600; cursor: pointer; &:hover { text-decoration: underline; } }
+.added { margin: 8px 0 0; }
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }

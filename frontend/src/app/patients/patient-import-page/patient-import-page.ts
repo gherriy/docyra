@@ -2,10 +2,10 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { LucideCheck, LucideSearch, LucideUpload } from '@lucide/angular';
 import { ImportResult, Patient } from '../patient.model';
 import { PatientService } from '../patient.service';
-
+import { AddPatientForm } from '../add-patient-form/add-patient-form';
 @Component({
   selector: 'app-patient-import-page',
-imports: [LucideCheck, LucideSearch, LucideUpload],
+imports: [LucideCheck, LucideSearch, LucideUpload, AddPatientForm],
   templateUrl: './patient-import-page.html',
   styleUrl: './patient-import-page.scss',
 })
@@ -18,6 +18,8 @@ export class PatientImportPage implements OnInit {
   readonly importedFileName = signal('');
   readonly error = signal<string | null>(null);
   readonly loading = signal(false);
+  readonly adding = signal(false);
+  readonly addedName = signal<string | null>(null);
 
   readonly filteredPatients = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -62,5 +64,10 @@ export class PatientImportPage implements OnInit {
 
   private loadPatients() {
     this.patientService.list().subscribe((patients) => this.patients.set(patients));
+  }
+  onPatientAdded(patient: Patient) {
+    this.adding.set(false);
+    this.addedName.set(`${patient.lastName} ${patient.firstName}`);
+    this.loadPatients();
   }
 }
