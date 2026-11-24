@@ -1,9 +1,11 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { toDataURL } from 'qrcode';
+import { filter, fromEvent } from 'rxjs';
 import { DocumentService } from '../../documents/document.service';
-import { ScanSession, ScanSessionService } from '../scan-session.service';
+import { SCAN_SESSION_KEY, ScanSession, ScanSessionService } from '../scan-session.service';
 
 @Component({
   selector: 'app-phone-page',
@@ -14,6 +16,7 @@ import { ScanSession, ScanSessionService } from '../scan-session.service';
 export class PhonePage implements OnInit {
   private readonly scanSessionService = inject(ScanSessionService);
   private readonly documentService = inject(DocumentService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly session = signal<ScanSession | null>(null);
   readonly qrCode = signal<string | null>(null);
@@ -28,6 +31,20 @@ export class PhonePage implements OnInit {
     } else {
       this.generate();
     }
+
+    // Un seul QR code est actif à la fois : si un autre onglet en crée un nouveau,
+    // on l'affiche ici aussi, sinon ce QR code-ci ne marcherait plus.
+    fromEvent<StorageEvent>(window, 'storage')
+      .pipe(
+        filter((event) => event.key === SCAN_SESSION_KEY),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        const latest = this.scanSessionService.current();
+        if (latest) {
+          this.show(latest);
+        }
+      });
   }
 
   generate() {
@@ -62,7 +79,11 @@ export class PhonePage implements OnInit {
 
   private async show(session: ScanSession) {
     this.session.set(session);
-    this.qrCode.set(await toDataURL(session.scanUrl, { width: 320, margin: 1, color: { dark: '#1d1033', light: '#ffffff' } }));
-    this.loading.set(false);
+    const qrCode = await toDataURL(session.scanUrl, { width: 320, margin: 1, color: { dark: '#1d1033', light: '#ffffff' } });
+    // Si un autre code est arrivé pendant le dessin, on garde le plus récent.
+    if (this.session() === session) {
+      this.qrCode.set(qrCode);
+      this.loading.set(false);
+    }
   }
 }
