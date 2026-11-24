@@ -19,7 +19,7 @@ class ScanSessionServiceTest {
 
     private final ScanSessionRepository repository = mock(ScanSessionRepository.class);
     private final ScanSessionService service =
-            new ScanSessionService(repository, Clock.fixed(NOW, ZoneOffset.UTC));
+            new ScanSessionService(repository, Clock.fixed(NOW, ZoneOffset.UTC), "http://192.168.1.20:4200");
 
     private void givenSession(String token, ScanSession session) {
         when(repository.findByTokenHash(ScanSessionService.hash(token))).thenReturn(Optional.of(session));
@@ -57,6 +57,7 @@ class ScanSessionServiceTest {
 
     @Test
     void newTokenDeactivatesPreviousOnesAndStoresOnlyTheHash() {
+        
         ScanSessionResponse response = service.create("s@docyra.local");
 
         verify(repository).deactivateAll("s@docyra.local");
@@ -65,5 +66,7 @@ class ScanSessionServiceTest {
         ArgumentCaptor<ScanSession> saved = ArgumentCaptor.forClass(ScanSession.class);
         verify(repository).save(saved.capture());
         assertThat(saved.getValue()).extracting("tokenHash").isEqualTo(ScanSessionService.hash(response.token()));
+        assertThat(response.scanUrl()).isEqualTo("http://192.168.1.20:4200/scan?token=" + response.token());
+
     }
 }
